@@ -1,7 +1,7 @@
 <p align="center">
   <img src="https://u.cubeupload.com/ihavecandy/rszjackstext.png">
 </p>
-
+[![Java CI with Maven](https://github.com/porplax/JACKS-Lang/actions/workflows/maven.yml/badge.svg)](https://github.com/porplax/JACKS-Lang/actions/workflows/maven.yml)
 ```
 jacks file.jk out.class
 ```
