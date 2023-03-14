@@ -1,7 +1,10 @@
 <p align="center">
   <img src="https://u.cubeupload.com/ihavecandy/rszjackstext.png">
-  <img src="https://github.com/porplax/JACKS-Lang/actions/workflows/maven.yml/badge.svg">
+  
 </p>
+<p align="center">
+ <img src="https://github.com/porplax/JACKS-Lang/actions/workflows/maven.yml/badge.svg">
+  </p>
 
 ```
 jacks file.jk out.class
