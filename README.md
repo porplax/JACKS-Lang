@@ -27,7 +27,7 @@ It utilizes **ASM** for class generation and has it's own parser and lexer.
 
 ## About
 JACKS is nothing more than a generic toy language, made for fun. It has no uses that it specializes in.
-So should you use JACKS? I dunno :P, it can be a great tool for creating projects like a simple web server, visualization, and such.
+So should you use JACKS? I dunno :P, it can be a great tool for creating projects like a simple web server, visualization, and such. Although there is no way of calling methods from other classes at the moment.
 
 
 # TODO
