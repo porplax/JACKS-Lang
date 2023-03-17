@@ -94,8 +94,73 @@ public class CodeGeneration implements Visitor {
                         l0, l1,
                         index);
             }
-            case FUNCTION_CALL -> {
-                handleFunctionCall(node);
+            case IMPORT_STMT -> {
+                /*
+                Tree.Node child = node.children.get(0);
+                ClassLookup cp = new ClassLookup();
+                cp.getMethod("exit");
+                ClassReader cr = null;
+                try {
+                    cr = new ClassReader(child.getSymbol().value);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+                cr.accept(cp, 0);
+
+                 */
+            }
+            case CLASS -> {
+                int previous_scope = SymbolTableManager.CurrentScope;
+                SymbolTableManager.setSymbolTable(-1);
+
+                ClassLookup cp = new ClassLookup();
+                ClassReader cr = null;
+
+                String name = node.getSymbol().value;
+                String qualifier = String.valueOf(SymbolTableManager.get_attr(name, "qualifier"));
+
+                SymbolTableManager.setSymbolTable(previous_scope);
+
+                Label l0 = new Label();
+                mv.visitLabel(l0);
+
+                for (Tree.Node child : node.children) {
+                    if (child.getNodeType() == NodeType.METHOD) {
+                        String method_name = child.getSymbol().value;
+                        cp.getMethod(method_name);
+                        try {cr = new ClassReader(qualifier);} catch (IOException e) {throw new RuntimeException(e);}
+                        cr.accept(cp, 0);
+
+
+                        for (Tree.Node params : child.children) {
+                            params.accept(this);
+                        }
+
+                        mv.visitMethodInsn((cp.methodAccess == 1) ? INVOKEVIRTUAL : INVOKESTATIC,
+                                qualifier,
+                                method_name,
+                                cp.methodDesc,
+                                false);
+                    } else if (child.getNodeType() == NodeType.FIELD) {
+                        String field_name = child.getSymbol().value;
+                        cp.getField(field_name);
+                        try {cr = new ClassReader(qualifier);} catch (IOException e) {throw new RuntimeException(e);}
+                        cr.accept(cp, 0);
+                        Type type = Type.getType(cp.fieldDesc);
+
+                        mv.visitFieldInsn(GETSTATIC,
+                                qualifier,
+                                field_name,
+                                cp.fieldDesc);
+                        qualifier = type.getInternalName();
+                    } else {
+                        child.accept(this);
+                    }
+                }
+
+                Label l1 = new Label();
+                mv.visitLabel(l1);
+
             }
             case LITERAL -> {
                 switch (node.getSymbol().type) {
@@ -126,10 +191,9 @@ public class CodeGeneration implements Visitor {
 
     public void end(String pathName) {
         Label l0 = new Label();
-        mv.visitInsn(RETURN);
-        Label l1 = new Label();
 
-        mv.visitLabel(l1);
+        mv.visitLabel(l0);
+        mv.visitInsn(RETURN);
         mv.visitMaxs(0, 0);
 
         mv.visitEnd();
@@ -143,42 +207,4 @@ public class CodeGeneration implements Visitor {
         }
     }
 
-    private void handleFunctionCall(Tree.Node node) {
-        String name = node.getSymbol().value;
-        StringBuilder descriptor = new StringBuilder();
-
-        int previous_table = SymbolTableManager.CurrentScope;
-        SymbolTableManager.setSymbolTable(-1);
-        // TODO: Lookup class.
-        SymbolTableManager.setSymbolTable(previous_table);
-        // BUILT-IN FUNCTIONS.
-        if (name.equals("puts")) {
-            mv.visitFieldInsn(GETSTATIC,
-                    "java/lang/System",
-                    "out",
-                    "Ljava/io/PrintStream;");
-
-            /*
-            ClassPrinter cp = new ClassPrinter();
-            ClassReader cr = null;
-            try {
-                cr = new ClassReader("java.lang.System");
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-            cr.accept(cp, ClassReader.SKIP_CODE);
-             */
-
-            for (Tree.Node child : node.getChildren()) {
-                visit(child);
-                descriptor.append(Objects.requireNonNull(Semantics.fetchType(child.getSymbol())).getDescriptor());
-            }
-            mv.visitMethodInsn(INVOKEVIRTUAL,
-                    "java/io/PrintStream",
-                    "println",
-                    "(" + descriptor.toString() + ")V");
-        } else if (name.equals("concat")) {
-            Builtin.appendString(mv, node.getChildren());
-        }
-    }
 }

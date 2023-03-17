@@ -13,6 +13,7 @@ public class Lexer {
     private String program = "";
     private StringBuilder buffer = new StringBuilder();
 
+    /*
     private final String[] keywords = {
             "if",
             "else",
@@ -28,6 +29,8 @@ public class Lexer {
             "false"
     };
 
+     */
+
     private void initialize() {
         index = 0;
         cursor = program.charAt(index);
@@ -35,6 +38,7 @@ public class Lexer {
 
     public void scan(String s) {
         if (s.isBlank()) {
+            line += 1;
             return;
         }
         program = s;
@@ -45,7 +49,7 @@ public class Lexer {
         if (tokens.size() != 0 && tokens.get(tokens.size() - 1).type != TokenType.EOF) {
             tokens.add(new Token("", TokenType.EOF, line));
         }
-        line++;
+        line += 1;
     }
 
     private void consume() {
@@ -70,6 +74,8 @@ public class Lexer {
                     switch (buffer.toString()) {
                         case "namespace" -> matchType = TokenType.NAMESPACE;
                         case "extends" -> matchType = TokenType.EXTENDS;
+                        case "def" -> matchType = TokenType.FUNCTION_DEF;
+                        case "use" -> matchType = TokenType.USE;
                     }
 
                     tokens.add(new Token(buffer.toString(), matchType, line));

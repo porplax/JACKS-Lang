@@ -47,13 +47,13 @@ public class Main {
                 lexer.scan(line);
             }
         }
-        //System.out.println(lexer.tokens);
+        System.out.println(lexer.tokens);
 
         parser.parse();
         Tree.Node body = parser.getProgramNode();
 
-        //System.out.println(SymbolTableManager.getSymbolTable());
-        //body.accept(new PrintVisitor());
+        System.out.println(SymbolTableManager.getSymbolTable());
+        body.accept(new PrintVisitor());
         body.accept(generator);
 
         generator.end(outputFilename);

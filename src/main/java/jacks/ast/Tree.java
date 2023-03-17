@@ -155,9 +155,34 @@ public class Tree {
         }
     }
 
+    // Should be noted that an Object can just use the Node class.
+    @Deprecated
     public static class FunctionCallNode extends Node {
         public FunctionCallNode(Token symbol) {
-            super(symbol, NodeType.FUNCTION_CALL);
+            super(symbol, NodeType.METHOD);
         }
     }
+
+    public static class FunctionNode extends Node {
+        private Token type;
+
+        public FunctionPrototypeNode getPrototypeNode() {
+            return prototypeNode;
+        }
+
+        private final FunctionPrototypeNode prototypeNode;
+
+        public FunctionNode(Token symbol, FunctionPrototypeNode prototypeNode, Token type) {
+            super(symbol, NodeType.FUNCTION);
+            this.prototypeNode = prototypeNode;
+            this.type = type;
+        }
+    }
+
+    public static class FunctionPrototypeNode extends Node {
+        public FunctionPrototypeNode() {
+            super(null, NodeType.FUNCTION_PROTOTYPE);
+        }
+    }
+
 }

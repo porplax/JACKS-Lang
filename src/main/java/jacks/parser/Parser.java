@@ -74,18 +74,67 @@ public class Parser {
         if (primary!= null) return primary;
         primary = _ruleAssignment();
         if (primary!= null) return primary;
-
+        primary = _ruleImportStmt();
+        if (primary!= null) return primary;
         return null;
     }
 
+    private Tree.Node _ruleImportStmt() {
+        if (expect(TokenType.USE, 0)) {
+            Tree.Node importNode = new Tree.Node(null, NodeType.IMPORT_STMT);
+            assume(TokenType.IDENTIFIER);
+            importNode.children.add(_ruleImportQualifier());
+            next(1);
+            return importNode;
+        }
+        return null;
+    }
+
+    private Tree.Node _ruleImportQualifier() {
+        StringBuilder descriptor = new StringBuilder();
+        while (expect(TokenType.IDENTIFIER, 0) || expect(TokenType.DOT, 0)) {
+            if (expect(TokenType.DOT, 0)) {
+                descriptor.append('/');
+                next(1);
+                continue;
+            }
+            descriptor.append(current.value);
+            next(1);
+        }
+        return new Tree.Node(new Token(descriptor.toString(), TokenType.IDENTIFIER, current.line), NodeType.QUALIFIER);
+    }
+
     private Tree.Node _ruleFunctionCall() {
-        if (expect(TokenType.IDENTIFIER, 0) && expect(TokenType.LPAREN, 1)) {
+        Tree.Node call;
+        if (expect(TokenType.IDENTIFIER, 0) && expect(TokenType.DOT, 1)) {
+            Token name = current;
+            next(1);
+            call  = new Tree.Node(name, NodeType.CLASS);
+            while (expect(TokenType.DOT, 0)) {
+                next(1);
+                call.children.add(_ruleFunctionField());
+            }
+            return call;
+        }
+
+        call = _ruleFunctionField();
+        return call;
+    }
+
+    private Tree.Node _ruleFunctionField() {
+        if (expect(TokenType.IDENTIFIER, 0) && (expect(TokenType.LPAREN, 1))) {
             Token name = current;
             next(1);
             LinkedList<Tree.Node> args = _ruleFunctionCallArgs();
             Tree.FunctionCallNode call = new Tree.FunctionCallNode(name);
-            call.children = args;
+            call.children.addAll(args);
             return call;
+        }
+
+        if (expect(TokenType.IDENTIFIER, 0) && (expect(TokenType.DOT, 1) || expect(TokenType.EOF, 1))) {
+            Token name = current;
+            next(1);
+            return new Tree.Node(name, NodeType.FIELD);
         }
         return null;
     }
@@ -156,7 +205,7 @@ public class Parser {
         if (primary != null) return primary;
         primary = _tokenRawString();
         if (primary != null) return primary;
-        error("Syntax error #01");
+        error("Syntax error #01 " + current);
         return null;
     }
 
@@ -179,6 +228,11 @@ public class Parser {
             return new Tree.Node(current, NodeType.IDENTIFIER);
         }
         return null;
+    }
+
+    private void assume(TokenType type) {
+        next(1);
+        if (current.type!= type) error("Syntax error #05 " + current + " " + type);
     }
 
     private void error(String syntaxError) {

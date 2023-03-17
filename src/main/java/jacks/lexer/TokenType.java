@@ -1,7 +1,7 @@
 package jacks.lexer;
 
 public enum TokenType {
-    NAMESPACE(-2), EXTENDS(-2),
+    NAMESPACE(-2), EXTENDS(-2), FUNCTION_DEF(-2), USE(-2),
 
     EOF(-1), NULL(-1),
 

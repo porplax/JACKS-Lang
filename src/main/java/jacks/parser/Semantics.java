@@ -3,6 +3,7 @@ package jacks.parser;
 import jacks.Color;
 import jacks.Main;
 import jacks.SymbolTableManager;
+import jacks.ast.PrintVisitor;
 import jacks.ast.Tree;
 import jacks.ast.Visitor;
 import jacks.lexer.Token;
@@ -19,6 +20,21 @@ public class Semantics implements Visitor {
     @Override
     public void visit(Tree.Node node) {
         switch (node.getNodeType()) {
+            case FUNCTION -> {
+                int previous_scope = SymbolTableManager.CurrentScope;
+                SymbolTableManager.allocate(previous_scope + 1);
+                Tree.FunctionNode functionNode = (Tree.FunctionNode) node;
+                Tree.FunctionPrototypeNode prototypeNode = functionNode.getPrototypeNode();
+
+                for (Tree.Node parameter : prototypeNode.getChildren()) {
+                    parameter.accept(this);
+                }
+
+                for (Tree.Node child : node.getChildren()) {
+                    child.accept(this);
+                }
+                SymbolTableManager.setSymbolTable(previous_scope);
+            }
             case VARIABLE -> {
                 Tree.VariableNode variableNode = null;
                 if (!(node instanceof Tree.VariableNode)) {
@@ -50,8 +66,23 @@ public class Semantics implements Visitor {
                     case "str" -> SymbolTableManager.set_attr(name, "type", Type.getType("Ljava/lang/String;"));
                     case "char" -> SymbolTableManager.set_attr(name, "type", Type.getType("C"));
                     case "bool" -> SymbolTableManager.set_attr(name, "type", Type.getType("Z"));
+                    case "double" -> SymbolTableManager.set_attr(name, "type", Type.getType("D"));
+                    default -> {
+                        int previous_scope = SymbolTableManager.CurrentScope;
 
-                    default -> SymbolTableManager.set_attr(name, "type", Type.getType("L" + variableNode.getVarType().value + ";"));
+                        String typeName = variableNode.getVarType().value;
+
+                        SymbolTableManager.setSymbolTable(-1);
+                        if (SymbolTableManager.lookup(typeName) == null) {
+                            error(node, "Unknown type: " + typeName, "");
+                        } else {
+                            typeName = (String) SymbolTableManager.get_attr(typeName, "qualifier");
+                        }
+                        SymbolTableManager.setSymbolTable(previous_scope);
+
+                        SymbolTableManager.set_attr(name, "type", Type.getObjectType(typeName));
+                        SymbolTableManager.set_attr(name, "qualifier", Type.getObjectType(typeName));
+                    }
                 }
 
                 SymbolTableManager.set_attr(name, "index", marker++);
@@ -64,13 +95,28 @@ public class Semantics implements Visitor {
                 }
             }
             case IDENTIFIER -> {
+                int previous_scope = SymbolTableManager.CurrentScope;
+                SymbolTableManager.setSymbolTable(-1);
+                Object PkgSymbol = SymbolTableManager.lookup(node.getSymbol().value);
+                SymbolTableManager.setSymbolTable(previous_scope);
                 Object Symbol = SymbolTableManager.lookup(node.getSymbol().value);
-                if (Symbol == null) {
+                if (PkgSymbol == null && Symbol == null) {
                     error(node, "Undefined symbol: '" + node.getSymbol().value + "', was it declared?", node.getSymbol().value + ": (type) = (value)");
                 } else {
                     ArrayList<Tree.Node> uses = (ArrayList<Tree.Node>) SymbolTableManager.get_attr(node.getSymbol().value, "uses");
                     uses.add(node);
                 }
+            }
+            case IMPORT_STMT -> {
+                Tree.Node child = node.getChildren().get(0);
+                String name = child.getSymbol().value.substring(child.getSymbol().value.lastIndexOf('/') + 1, child.getSymbol().value.length());
+                int previous_scope = SymbolTableManager.CurrentScope;
+                SymbolTableManager.setSymbolTable(-1);
+                SymbolTableManager.insert(name);
+                SymbolTableManager.set_attr(name, "qualifier", child.getSymbol().value);
+                SymbolTableManager.setSymbolTable(previous_scope);
+
+
             }
         }
         for (Tree.Node child : node.getChildren()) {
@@ -104,7 +150,7 @@ public class Semantics implements Visitor {
         System.out.println(Color.RED.getColor() + info + Color.RESET.getColor());
         System.out.println(" ".repeat(4) + Color.GRAY.getColor() + node.getSymbol().line + " | " + Color.RESET.getColor() + Color.UNDERLINE.getColor() + Color.BOLD.getColor() + line + Color.RESET.getColor());
         System.out.println("=".repeat(40 + line.length()));
-        if (!solution.isBlank()) {
+        if (solution != null || !solution.isBlank()) {
             System.out.println(Color.GRAY.getColor() + Color.ITALIC.getColor() + "Possible Solution: " + Color.RESET.getColor() + Color.GREEN.getColor() + Color.BOLD.getColor() + solution + Color.RESET.getColor());
         }
         System.exit(1);

@@ -3,11 +3,13 @@ package jacks.ast;
 public enum NodeType {
     PROGRAM,
 
-    FUNCTION_CALL,
+    CLASS,
+    METHOD,
+    FIELD,
 
     IDENTIFIER,
     LITERAL,
 
     BINARY,
-    VARIABLE
+    FUNCTION, FUNCTION_PROTOTYPE, IMPORT_STMT, QUALIFIER, VARIABLE
 }
