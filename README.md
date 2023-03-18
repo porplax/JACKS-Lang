@@ -13,8 +13,10 @@ jacks file.jk out.class
 
 # JACKS <sup><sub>**Yes. Another (JVM) toy language.**</sub></sup>
 ```
+use java.lang.System
+
 $ This is a comment btw.
-puts('Hello World!')
+System.out.println('Hello World!')
 ```
 JACKS is influenced by Python, Fortran, and Rust, which makes it easy to learn. 
 
