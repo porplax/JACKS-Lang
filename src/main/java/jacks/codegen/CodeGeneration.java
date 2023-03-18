@@ -80,6 +80,31 @@ public class CodeGeneration implements Visitor {
                 mv.visitLabel(l0);
 
                 for (Tree.Node child : variable.getChildren()) {
+                    if (child.getNodeType() == NodeType.METHOD && variable.getChildren().size() == 1) {
+                        int previous_scope = SymbolTableManager.CurrentScope;
+                        SymbolTableManager.setSymbolTable(-1);
+                        String child_name = child.getSymbol().value;
+                        String qualifier = String.valueOf(SymbolTableManager.get_attr(child_name, "qualifier"));
+                        SymbolTableManager.setSymbolTable(previous_scope);
+
+                        ClassLookup cp = new ClassLookup();
+                        ClassReader cr = null;
+
+                        cp.getMethod("<init>");
+                        try {cr = new ClassReader(qualifier);} catch (IOException e) {throw new RuntimeException(e);}
+                        cr.accept(cp, 0);
+
+
+                        mv.visitTypeInsn(NEW, qualifier);
+                        mv.visitInsn(DUP);
+                        mv.visitMethodInsn(
+                                INVOKESPECIAL,
+                                qualifier,
+                                "<init>",
+                                "()V",
+                                false);
+                        continue;
+                    }
                     child.accept(this);
                 }
 
@@ -118,8 +143,25 @@ public class CodeGeneration implements Visitor {
 
                 String name = node.getSymbol().value;
                 String qualifier = String.valueOf(SymbolTableManager.get_attr(name, "qualifier"));
-
                 SymbolTableManager.setSymbolTable(previous_scope);
+
+                /*
+                if (SymbolTableManager.lookup(name) == null) {
+                    int scope = previous_scope;
+                    while (!(scope - 1 > SymbolTableManager.getSymbolTable().size())) {
+                        SymbolTableManager.setSymbolTable(scope);
+                        try {
+                            if (SymbolTableManager.lookup(name) != null) {
+                                qualifier = String.valueOf(SymbolTableManager.get_attr(name, "qualifier"));
+                                break;
+                            }
+                        } catch (NullPointerException ignored) {;}
+                        scope += 1;
+                    }
+                } else {
+                }
+                System.err.println(name);
+                */
 
                 Label l0 = new Label();
                 mv.visitLabel(l0);
@@ -135,31 +177,32 @@ public class CodeGeneration implements Visitor {
                         for (Tree.Node params : child.children) {
                             params.accept(this);
                         }
-
                         mv.visitMethodInsn((cp.methodAccess == 1) ? INVOKEVIRTUAL : INVOKESTATIC,
                                 qualifier,
                                 method_name,
                                 cp.methodDesc,
                                 false);
+
                     } else if (child.getNodeType() == NodeType.FIELD) {
                         String field_name = child.getSymbol().value;
                         cp.getField(field_name);
-                        try {cr = new ClassReader(qualifier);} catch (IOException e) {throw new RuntimeException(e);}
+                        try {
+                            cr = new ClassReader(qualifier);
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
                         cr.accept(cp, 0);
                         Type type = Type.getType(cp.fieldDesc);
-
                         mv.visitFieldInsn(GETSTATIC,
                                 qualifier,
                                 field_name,
                                 cp.fieldDesc);
                         qualifier = type.getInternalName();
-                    } else {
-                        child.accept(this);
+
                     }
                 }
 
-                Label l1 = new Label();
-                mv.visitLabel(l1);
+                SymbolTableManager.setSymbolTable(previous_scope);
 
             }
             case LITERAL -> {

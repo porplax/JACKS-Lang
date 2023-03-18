@@ -122,7 +122,7 @@ public class Parser {
     }
 
     private Tree.Node _ruleFunctionField() {
-        if (expect(TokenType.IDENTIFIER, 0) && (expect(TokenType.LPAREN, 1))) {
+        if (expect(TokenType.IDENTIFIER, 0) && (expect(TokenType.LPAREN, 1))) { //occasional
             Token name = current;
             next(1);
             LinkedList<Tree.Node> args = _ruleFunctionCallArgs();
@@ -131,7 +131,7 @@ public class Parser {
             return call;
         }
 
-        if (expect(TokenType.IDENTIFIER, 0) && (expect(TokenType.DOT, 1) || expect(TokenType.EOF, 1))) {
+        if (expect(TokenType.IDENTIFIER, 0) && (expect(TokenType.DOT, 1) || (expect(TokenType.DOT, -1) && expect(TokenType.EOF, 1)))) {
             Token name = current;
             next(1);
             return new Tree.Node(name, NodeType.FIELD);
