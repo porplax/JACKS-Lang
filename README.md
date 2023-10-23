@@ -8,7 +8,7 @@ jacks file.jk out.class
 ```
 ---
 
-# JACKS <sup><sub>**Yes. Another (JVM) toy language.**</sub></sup>
+# JACKS <sup><sub>**Another (JVM) toy language.**</sub></sup>
 ```
 $ Welcome, This is the first JACKS compiler!
 $ Variables and basic functions are the only commands that are implemented.
