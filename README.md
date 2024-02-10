@@ -3,6 +3,10 @@
   
 </p>
 
+
+## About
+JACKS is an abandoned project I worked on during November of 2022. It is outdated and (probably) doesn't work well anymore.  While I am not involved anymore, Feel free to look at the code! 
+
 ```
 jacks file.jk out.class
 ```
@@ -35,15 +39,4 @@ JACKS is influenced by Python, Fortran, and Rust, which makes it easy to learn.
 
 It utilizes **ASM** for class generation and has it's own parser and lexer. 
 
-
-## About
-JACKS is nothing more than a generic toy language, made for fun. It has no uses that it specializes in.
-So should you use JACKS? I dunno :P, it can be a great tool for creating projects like a simple web server, visualization, and such.
-
-
-# TODO
-- [ ] Condition statements.
-- [ ] Class generation optimization.
-- [ ] IO statements.
-- [X] Refactor semantics analysis.
-- [ ] Short documentation.
+ 
